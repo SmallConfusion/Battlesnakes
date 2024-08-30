@@ -12,8 +12,6 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	head := &state.You.Head
 
-	move := DirNull
-
 	check := Coord{}
 
 	dirPrefs := [4]float64{}
@@ -21,22 +19,44 @@ func move(state GameState) BattlesnakeMoveResponse {
 	for _, dir := range directions {
 		val := grid.Get(check.AddDir(head, dir))
 
-		if val == 0 {
-			dirPrefs[dir] += 1
-		} else if val == Hazard {
-			dirPrefs[dir] += 0.5
+		if val > 0 {
+			dirPrefs[dir] -= 10
 		}
 
-		dirPrefs[dir] += float64(distFromHeads(&check, state)) * 0.01
+		if val == OutOfBounds {
+			dirPrefs[dir] -= 100
+		}
+
+		if val == Hazard {
+			dirPrefs[dir] -= 0.5
+		}
+
+		dirPrefs[dir] += float64(distFromHeads(&check, state)) * 0.001
 	}
 
-	return BattlesnakeMoveResponse{Move: move.String()}
+	dir := DirNull
+	max := -99999.9
+
+	for i, pref := range dirPrefs {
+		if pref > max {
+			max = pref
+			dir = directions[i]
+		}
+	}
+
+	log.Println(dirPrefs)
+
+	return BattlesnakeMoveResponse{Move: dir.String()}
 }
 
 func distFromHeads(check *Coord, state GameState) int {
 	min := 99999
 
 	for _, snake := range state.Board.Snakes {
+		if snake.ID == state.You.ID {
+			continue
+		}
+
 		d := snake.Head.Dist(check)
 
 		if d < min {
