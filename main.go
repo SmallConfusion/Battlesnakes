@@ -44,8 +44,6 @@ func move(state GameState) BattlesnakeMoveResponse {
 		}
 	}
 
-	log.Println(dirPrefs)
-
 	return BattlesnakeMoveResponse{Move: dir.String()}
 }
 
