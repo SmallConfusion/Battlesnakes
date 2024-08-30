@@ -6,6 +6,11 @@ type Grid struct {
 	board []int
 }
 
+const (
+	Hazard      = -1
+	OutOfBounds = -2
+)
+
 func (g *Grid) SetupFromState(state GameState) {
 	g.sizeX = state.Board.Width
 	g.sizeY = state.Board.Height
@@ -16,6 +21,10 @@ func (g *Grid) SetupFromState(state GameState) {
 		for _, segment := range snake.Body {
 			g.Set(&segment, i+1)
 		}
+	}
+
+	for _, hazard := range state.Board.Hazards {
+		g.Set(&hazard, Hazard)
 	}
 }
 
@@ -32,5 +41,9 @@ func (g *Grid) Set(pos *Coord, value int) {
 }
 
 func (g Grid) Get(pos *Coord) int {
-	return g.board[pos.X+pos.Y*g.sizeX]
+	if pos.X < 0 || pos.Y < 0 || pos.X >= g.sizeX || pos.Y >= g.sizeY {
+		return OutOfBounds
+	} else {
+		return g.board[pos.X+pos.Y*g.sizeX]
+	}
 }

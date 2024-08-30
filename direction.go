@@ -1,7 +1,5 @@
 package main
 
-import "log"
-
 type Direction int
 
 const (
@@ -9,6 +7,7 @@ const (
 	Right
 	Down
 	Left
+	DirNull
 )
 
 var directions = [4]Direction{Up, Right, Down, Left}
@@ -25,6 +24,5 @@ func (d Direction) String() string {
 		return "left"
 	}
 
-	log.Println("Error with direction, this SHOULD NOT HAPPEN")
 	return "up"
 }

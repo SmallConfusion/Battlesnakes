@@ -7,20 +7,22 @@ func main() {
 }
 
 func move(state GameState) BattlesnakeMoveResponse {
-	log.Println("Move requested")
-
 	grid := Grid{}
 	grid.SetupFromState(state)
 
 	head := &state.You.Head
 
-	move := Left
+	move := DirNull
 
 	check := Coord{}
 	for _, dir := range directions {
-		if grid.IsCoordSafe(check.AddDir(head, dir)) {
+		check := grid.Get(check.AddDir(head, dir))
+
+		if check == 0 {
 			move = dir
 			break
+		} else if check == Hazard {
+			move = dir
 		}
 	}
 
