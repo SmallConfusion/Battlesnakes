@@ -32,7 +32,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 		}
 
 		dirPrefs[dir] += float64(distFromHeads(&check, state)) * 0.001
-		dirPrefs[dir] += -float64(distFromFood(&check, state)) * 0.01
+		dirPrefs[dir] += -float64(distFromFood(&check, state)) * 0.001
 	}
 
 	dir := DirNull
