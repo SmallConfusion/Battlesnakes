@@ -32,6 +32,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 		}
 
 		dirPrefs[dir] += float64(distFromHeads(&check, state)) * 0.001
+		dirPrefs[dir] += -float64(distFromFood(&check, state)) * 0.01
 	}
 
 	dir := DirNull
@@ -56,6 +57,20 @@ func distFromHeads(check *Coord, state GameState) int {
 		}
 
 		d := snake.Head.Dist(check)
+
+		if d < min {
+			min = d
+		}
+	}
+
+	return min
+}
+
+func distFromFood(check *Coord, state GameState) int {
+	min := 99999
+
+	for _, food := range state.Board.Food {
+		d := food.Dist(check)
 
 		if d < min {
 			min = d
