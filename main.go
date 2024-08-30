@@ -7,13 +7,30 @@ func main() {
 }
 
 func move(state GameState) BattlesnakeMoveResponse {
-	return BattlesnakeMoveResponse{Move: "left"}
+	log.Println("Move requested")
+
+	grid := Grid{}
+	grid.SetupFromState(state)
+
+	head := &state.You.Head
+
+	move := Left
+
+	check := Coord{}
+	for _, dir := range directions {
+		if grid.IsCoordSafe(check.AddDir(head, dir)) {
+			move = dir
+			break
+		}
+	}
+
+	return BattlesnakeMoveResponse{Move: move.String()}
 }
 
 func start(state GameState) {
-	log.Println("Start game: ", state)
+	log.Println("Start game")
 }
 
 func end(state GameState) {
-	log.Println("End game: ", state)
+	log.Println("End game")
 }

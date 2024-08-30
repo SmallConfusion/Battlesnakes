@@ -12,10 +12,6 @@ type BattlesnakeMoveResponse struct {
 	Move  string `json:"move"`
 	Shout string `json:"shout"`
 }
-type Coord struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-}
 
 type Battlesnake struct {
 	ID             string         `json:"id"`
