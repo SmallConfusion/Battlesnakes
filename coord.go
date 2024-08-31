@@ -28,6 +28,6 @@ func (c *Coord) AddDir(a *Coord, d Direction) *Coord {
 	return c
 }
 
-func (c Coord) Dist(a *Coord) int {
-	return int(math.Abs(float64(c.X-a.X)) + math.Abs(float64(c.Y-a.Y)))
+func (c Coord) Dist(a *Coord) float64 {
+	return math.Abs(float64(c.X-a.X)) + math.Abs(float64(c.Y-a.Y))
 }
