@@ -119,7 +119,37 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 		eval += -foodDist * foodMultiplier
 	}
 
+	tight := g.clostrophobia(pos)
+	if tight < 15 {
+		eval -= 0.1 * (15 - tight)
+	}
+
 	return eval
+}
+
+func (g Grid) clostrophobia(pos *Coord) float64 {
+	total := 0.0
+
+	for _, dir := range directions {
+		total += g.raycast(pos, dir)
+	}
+
+	return total
+}
+
+func (g Grid) raycast(pos *Coord, dir Direction) float64 {
+	check := pos.Copy()
+	dist := 0.0
+
+	for {
+		if g.Get(&check) != Empty {
+			return dist
+		}
+
+		dist += 1
+
+		check.AddDir(&check, dir)
+	}
 }
 
 func (g Grid) headMinDist(pos *Coord, ignorePlayer int) float64 {
