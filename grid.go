@@ -104,7 +104,7 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 	dist := g.headMinDist(pos, player)
 
 	if dist == 1 {
-		eval -= 0.25
+		eval -= 0.45
 	} else if dist != math.Inf(1) {
 		eval += dist * 0.001
 	}
@@ -121,7 +121,7 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 
 	tight := g.clostrophobia(pos)
 	if tight < 15 {
-		eval -= 0.1 * (15 - tight)
+		eval -= 0.05 * (15 - tight)
 	}
 
 	return eval
