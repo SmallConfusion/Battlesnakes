@@ -101,10 +101,12 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 		eval -= 0.5
 	}
 
-	dist := g.headMinDist(pos, player)
+	dist, minSnake := g.headMinDist(pos, player)
 
-	if dist == 1 {
-		eval -= 0.45
+	avoidSnake := len(g.snakes[minSnake].Body) >= len(g.snakes[g.you].Body)
+
+	if dist == 1 && avoidSnake {
+		eval -= 2
 	} else if dist != math.Inf(1) {
 		eval += dist * 0.001
 	}
@@ -152,8 +154,8 @@ func (g Grid) raycast(pos *Coord, dir Direction) float64 {
 	}
 }
 
-func (g Grid) headMinDist(pos *Coord, ignorePlayer int) float64 {
-	min := math.Inf(1)
+func (g Grid) headMinDist(pos *Coord, ignorePlayer int) (dist float64, minSnake int) {
+	dist = math.Inf(1)
 
 	for i, snake := range g.snakes {
 		if i == ignorePlayer {
@@ -162,12 +164,13 @@ func (g Grid) headMinDist(pos *Coord, ignorePlayer int) float64 {
 
 		d := snake.Head.Dist(pos)
 
-		if min > d {
-			min = d
+		if dist > d {
+			dist = d
+			minSnake = i
 		}
 	}
 
-	return min
+	return
 }
 
 func (g Grid) foodMinDist(pos *Coord) float64 {
