@@ -205,7 +205,7 @@ func (g Grid) headMinDist(pos *Coord, ignorePlayer int) (dist float64, minSnake 
 
 	for i, snake := range g.snakes {
 		if i == ignorePlayer {
-			break
+			continue
 		}
 
 		d := snake.Head.Dist(pos)
