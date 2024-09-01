@@ -1,17 +1,17 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"math"
 )
 
 type Grid struct {
-	sizeX  int
-	sizeY  int
-	board  []int
-	you    int
-	snakes []Battlesnake
-	food   []Coord
+	sizeX   int
+	sizeY   int
+	you     int
+	snakes  []Battlesnake
+	hazards []Coord
+	food    []Coord
 }
 
 const (
@@ -25,23 +25,43 @@ func (g *Grid) SetupFromState(state GameState) {
 	g.sizeX = state.Board.Width
 	g.sizeY = state.Board.Height
 
-	g.board = make([]int, g.sizeX*g.sizeY)
-
 	g.snakes = state.Board.Snakes
+	g.hazards = state.Board.Hazards
 	g.food = state.Board.Food
 
 	for i, snake := range g.snakes {
 		if snake.ID == state.You.ID {
 			g.you = i
 		}
+	}
+}
 
+func (g Grid) Print() {
+	board := make([]string, g.sizeX*g.sizeY)
+
+	for _, hazard := range g.hazards {
+		board[hazard.X+hazard.Y*g.sizeX] = "/"
+	}
+
+	for i, snake := range g.snakes {
 		for _, segment := range snake.Body {
-			g.Set(&segment, Player+i)
+			board[segment.X+segment.Y*g.sizeX] = fmt.Sprint(i + 1)
 		}
 	}
 
-	for _, hazard := range state.Board.Hazards {
-		g.Set(&hazard, Hazard)
+	for _, food := range g.food {
+		board[food.X+food.Y*g.sizeX] = "@"
+	}
+
+	for y := 0; y < g.sizeY; y++ {
+		for x := 0; x < g.sizeX; x++ {
+			if board[x+y*g.sizeX] == "" {
+				print(". ")
+			} else {
+				print(board[x+y*g.sizeX] + " ")
+			}
+		}
+		println()
 	}
 }
 
@@ -53,24 +73,38 @@ func (g Grid) IsCoordSafe(pos *Coord) bool {
 	}
 }
 
-func (g *Grid) Set(pos *Coord, value int) {
-	g.board[pos.X+pos.Y*g.sizeX] = value
-}
-
 func (g Grid) Get(pos *Coord) int {
 	if pos.X < 0 || pos.Y < 0 || pos.X >= g.sizeX || pos.Y >= g.sizeY {
 		return OutOfBounds
 	} else {
-		return g.board[pos.X+pos.Y*g.sizeX]
+		for i, snake := range g.snakes {
+			for _, segment := range snake.Body {
+				if segment.Equals(pos) {
+					return Player + i
+				}
+			}
+		}
+
+		for _, hazard := range g.hazards {
+			if hazard.Equals(pos) {
+				return Hazard
+			}
+		}
+
+		return Empty
 	}
 }
 
 func (g *Grid) Move() Direction {
+	return g.getBestMove(&g.snakes[g.you].Body[0], g.you, g.quickEval)
+}
+
+func (g *Grid) getBestMove(pos *Coord, player int, eval func(*Coord, int) float64) Direction {
 	evals := make([]float64, 4)
 	check := Coord{}
 
 	for _, dir := range directions {
-		evals[dir] = g.quickEval(check.AddDir(&g.snakes[g.you].Head, dir), g.you)
+		evals[dir] = eval(check.AddDir(pos, dir), player)
 	}
 
 	max := math.Inf(-1)
@@ -82,8 +116,6 @@ func (g *Grid) Move() Direction {
 			dir = Direction(i)
 		}
 	}
-
-	log.Println(evals)
 
 	return dir
 }
@@ -147,13 +179,13 @@ func (g Grid) raycast(pos *Coord, dir Direction) float64 {
 	dist := 0.0
 
 	for {
-		if g.Get(&check) != Empty {
+		if g.Get(check) != Empty {
 			return dist
 		}
 
 		dist += 1
 
-		check.AddDir(&check, dir)
+		check.AddDir(check, dir)
 	}
 }
 
@@ -198,4 +230,40 @@ func (g Grid) checkSafeTail(pos *Coord) bool {
 	}
 
 	return false
+}
+
+func (g *Grid) simulate(selfDir Direction, self int, otherEval func(*Coord, int) float64) func() {
+	undoList := []func(){}
+
+	unsetSnakeBody := func(i int, b []Coord, v Coord) {
+		undoList = append(undoList, func() {
+			b[i] = v
+		})
+	}
+
+	for i, snake := range g.snakes {
+		pos := &g.snakes[i].Body[0]
+
+		var dir Direction
+
+		if i == self {
+			dir = selfDir
+		} else {
+			dir = g.getBestMove(pos, i, otherEval)
+		}
+
+		for i := 1; i < snake.Length; i++ {
+			unsetSnakeBody(i, snake.Body, snake.Body[i])
+			snake.Body[i] = snake.Body[i-1]
+		}
+
+		unsetSnakeBody(i, snake.Body, snake.Body[i])
+		snake.Body[i].AddDir(&snake.Body[i], dir)
+	}
+
+	return func() {
+		for _, f := range undoList {
+			f()
+		}
+	}
 }

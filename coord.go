@@ -7,8 +7,8 @@ type Coord struct {
 	Y int `json:"y"`
 }
 
-func (c Coord) Copy() Coord {
-	return Coord{X: c.X, Y: c.Y}
+func (c Coord) Copy() *Coord {
+	return &Coord{X: c.X, Y: c.Y}
 }
 
 func (c Coord) Equals(a *Coord) bool {
