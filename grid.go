@@ -143,6 +143,9 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 	if dist == 1 && avoidSnake {
 		eval -= 20
 
+	} else if dist == 1 && !avoidSnake {
+		eval += 1
+
 	} else if dist != math.Inf(1) {
 		eval += dist * 0.001
 	}
@@ -154,7 +157,11 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 
 	foodDist := g.foodMinDist(pos)
 	if foodDist != math.Inf(1) {
-		eval += -foodDist * foodMultiplier
+		if foodDist == 0 {
+			eval += 0.2
+		} else {
+			eval += -foodDist * foodMultiplier
+		}
 	}
 
 	tight := g.clostrophobia(pos)
