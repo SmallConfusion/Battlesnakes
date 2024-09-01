@@ -97,7 +97,7 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 	}
 
 	if val == OutOfBounds {
-		eval -= -9999999
+		eval -= 9999999
 	}
 
 	if val == Hazard {
