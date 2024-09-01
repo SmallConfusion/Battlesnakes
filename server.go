@@ -71,7 +71,6 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 func withServerId(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Server", serverId)
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		next(w, r)
 	}
 }
