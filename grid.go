@@ -92,12 +92,12 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 	eval := 0.0
 	val := g.Get(pos)
 
-	if val >= Player {
-		eval -= 999999
+	if val >= Player && !g.checkSafeTail(pos) {
+		eval -= 990
 	}
 
 	if val == OutOfBounds {
-		eval -= 9999999
+		eval -= 999
 	}
 
 	if val == Hazard {
@@ -188,4 +188,14 @@ func (g Grid) foodMinDist(pos *Coord) float64 {
 	}
 
 	return min
+}
+
+func (g Grid) checkSafeTail(pos *Coord) bool {
+	for _, snake := range g.snakes {
+		if snake.Body[snake.Length-1].Equals(pos) && !snake.Body[snake.Length-2].Equals(pos) {
+			return true
+		}
+	}
+
+	return false
 }

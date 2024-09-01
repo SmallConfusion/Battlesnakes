@@ -11,6 +11,10 @@ func (c Coord) Copy() Coord {
 	return Coord{X: c.X, Y: c.Y}
 }
 
+func (c Coord) Equals(a *Coord) bool {
+	return c.X == a.X && c.Y == a.Y
+}
+
 func (c *Coord) Add(a, b *Coord) *Coord {
 	c.X = a.X + b.X
 	c.Y = a.Y + b.Y
