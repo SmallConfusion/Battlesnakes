@@ -138,12 +138,13 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 
 	dist, minSnake := g.headMinDist(pos, player)
 
-	avoidSnake := g.snakes[minSnake].Length >= g.snakes[g.you].Length
+	avoidSnake := g.snakes[minSnake].Length >= g.snakes[player].Length
 
-	if dist == 1 && avoidSnake {
+	// Fuzzy number might fix bug?
+	if dist <= 1.5 && avoidSnake {
 		eval -= 20
 
-	} else if dist == 1 && !avoidSnake {
+	} else if dist < 1.5 && !avoidSnake {
 		eval += 1
 
 	} else if dist != math.Inf(1) {
