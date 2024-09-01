@@ -69,8 +69,8 @@ func (g *Grid) Move() Direction {
 	evals := make([]float64, 4)
 	check := Coord{}
 
-	for i, dir := range directions {
-		evals[i] = g.quickEval(check.AddDir(&g.snakes[g.you].Head, dir), g.you)
+	for _, dir := range directions {
+		evals[dir] = g.quickEval(check.AddDir(&g.snakes[g.you].Head, dir), g.you)
 	}
 
 	max := math.Inf(-1)
