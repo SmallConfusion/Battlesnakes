@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math"
 )
 
@@ -81,6 +82,8 @@ func (g *Grid) Move() Direction {
 			dir = Direction(i)
 		}
 	}
+
+	log.Println(evals)
 
 	return dir
 }
