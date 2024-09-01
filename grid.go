@@ -12,6 +12,7 @@ type Grid struct {
 	snakes  []Battlesnake
 	hazards []Coord
 	food    []Coord
+	state   GameState
 }
 
 const (
@@ -28,6 +29,7 @@ func (g *Grid) SetupFromState(state GameState) {
 	g.snakes = state.Board.Snakes
 	g.hazards = state.Board.Hazards
 	g.food = state.Board.Food
+	g.state = state
 
 	for i, snake := range g.snakes {
 		if snake.ID == state.You.ID {
@@ -138,7 +140,7 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 
 	dist, minSnake := g.headMinDist(pos, player)
 
-	avoidSnake := g.snakes[minSnake].Length >= g.snakes[player].Length
+	avoidSnake := g.snakes[minSnake].Length >= g.snakes[player].Length || g.state.Game.Ruleset.Name == "constrictor"
 
 	// Fuzzy number might fix bug?
 	if dist <= 1.5 && avoidSnake {
