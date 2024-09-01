@@ -90,11 +90,11 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 	val := g.Get(pos)
 
 	if val >= Player {
-		return -90
+		eval -= 999999
 	}
 
 	if val == OutOfBounds {
-		return -100
+		eval -= -9999999
 	}
 
 	if val == Hazard {
