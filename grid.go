@@ -154,20 +154,24 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 
 	foodMultiplier := 0.001
 	if g.snakes[player].Health < 10 {
-		foodMultiplier = 0.02
+		foodMultiplier = 0.2
+	} else if g.snakes[player].Health < 20 {
+		foodMultiplier = 0.08
 	}
 
 	foodDist := g.foodMinDist(pos)
 	if foodDist != math.Inf(1) {
 		if foodDist == 0 {
-			eval += 0.2
+			eval += 0.2 + foodMultiplier
 		} else {
 			eval += -foodDist * foodMultiplier
 		}
 	}
 
 	tight := g.clostrophobia(pos)
-	if tight < 15 {
+	if tight < 5 {
+		eval -= 1.2
+	} else if tight < 15 {
 		eval -= 0.05 * (15 - tight)
 	}
 
