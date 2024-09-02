@@ -1,3 +1,3 @@
-module github.com/smallconfusion/snake
+module github.com/smallconfusion/hatsune-snaku
 
-go 1.22.6
+go 1.23.0
