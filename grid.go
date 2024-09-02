@@ -170,7 +170,7 @@ func (g Grid) quickEval(pos *Coord, player int) float64 {
 
 	tight := g.clostrophobia(pos)
 	if tight < 5 {
-		eval -= 1.2
+		eval -= 1.2 + (5-tight)*0.1
 	} else if tight < 15 {
 		eval -= 0.05 * (15 - tight)
 	}
