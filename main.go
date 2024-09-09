@@ -15,7 +15,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 	grid := Grid{}
 	grid.SetupFromState(state)
 
-	move := grid.Move()
+	move := grid.GetMove()
 
 	log.Println("\tGot move", move.String(), "in time", time.Since(start))
 
