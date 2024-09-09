@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"sync"
 )
 
 type Grid struct {
@@ -98,16 +99,19 @@ func (g Grid) Get(pos *Coord) int {
 }
 
 func (g *Grid) Move() Direction {
-	return g.getBestMove(&g.snakes[g.you].Body[0], g.you, g.quickEval)
-}
-
-func (g *Grid) getBestMove(pos *Coord, player int, eval func(*Coord, int) float64) Direction {
 	evals := make([]float64, 4)
-	check := Coord{}
+
+	wg := sync.WaitGroup{}
+	wg.Add(4)
 
 	for _, dir := range directions {
-		evals[dir] = eval(check.AddDir(pos, dir), player)
+		go func() {
+			evals[dir] = g.eval(dir, 4)
+			wg.Done()
+		}()
 	}
+
+	wg.Wait()
 
 	max := math.Inf(-1)
 	var dir Direction
@@ -122,7 +126,22 @@ func (g *Grid) getBestMove(pos *Coord, player int, eval func(*Coord, int) float6
 	return dir
 }
 
-func (g Grid) quickEval(pos *Coord, player int) float64 {
+func (g Grid) evalGrid() float64 {
+	min := math.Inf(1)
+
+	for _, dir := range directions {
+		e := g.posEval((&Coord{}).AddDir(&g.snakes[g.you].Head, dir))
+
+		if e < min {
+			min = e
+		}
+	}
+
+	return min
+}
+
+func (g Grid) posEval(pos *Coord) float64 {
+	player := g.you
 	eval := 0.0
 	val := g.Get(pos)
 
@@ -246,38 +265,70 @@ func (g Grid) checkSafeTail(pos *Coord) bool {
 	return false
 }
 
-func (g *Grid) simulate(selfDir Direction, self int, otherEval func(*Coord, int) float64) func() {
-	undoList := []func(){}
+func (g *Grid) eval(dir Direction, depth int) float64 {
+	if depth == 0 {
+		return g.evalGrid()
+	} else {
+		h := g.snakes[g.you].Head
 
-	unsetSnakeBody := func(i int, b []Coord, v Coord) {
-		undoList = append(undoList, func() {
-			b[i] = v
-		})
+		for _, seg := range g.snakes[g.you].Body[1:] {
+			if h.Equals(&seg) {
+				return -100000000
+			}
+		}
+
+		if h.X < 0 || h.X >= g.sizeX || h.Y < 0 || h.Y >= g.sizeY {
+			return -11000000
+		}
+
+		return g.evalMoves(0, dir, depth)
 	}
+}
 
-	for i, snake := range g.snakes {
-		pos := &g.snakes[i].Body[0]
+func (g *Grid) evalMoves(snakeIndex int, evalDir Direction, depth int) float64 {
+	min := math.Inf(1)
 
-		var dir Direction
+	for _, dir := range directions {
+		e := 0.0
 
-		if i == self {
-			dir = selfDir
+		undo := g.simulate(snakeIndex, dir)
+
+		if snakeIndex == len(g.snakes)-1 {
+			e = g.eval(dir, depth-1)
 		} else {
-			dir = g.getBestMove(pos, i, otherEval)
+			e = g.evalMoves(snakeIndex+1, evalDir, depth)
 		}
 
-		for i := 1; i < snake.Length; i++ {
-			unsetSnakeBody(i, snake.Body, snake.Body[i])
-			snake.Body[i] = snake.Body[i-1]
+		if e < min {
+			min = e
 		}
 
-		unsetSnakeBody(i, snake.Body, snake.Body[i])
-		snake.Body[i].AddDir(&snake.Body[i], dir)
+		undo()
 	}
 
-	return func() {
-		for _, f := range undoList {
-			f()
-		}
+	return min
+}
+
+func (g *Grid) simulate(snake int, dir Direction) func() {
+	prev_snake_body := make([]Coord, len(g.snakes[snake].Body))
+	copy(prev_snake_body, g.snakes[snake].Body)
+
+	prev_snake_head := g.snakes[snake].Head
+
+	for i := len(g.snakes[snake].Body) - 1; i > 0; i-- {
+		g.snakes[snake].Body[i] = g.snakes[snake].Body[i-1]
 	}
+
+	var head Coord
+	head.AddDir(&prev_snake_head, dir)
+
+	g.snakes[snake].Body[0] = head
+	g.snakes[snake].Head = head
+
+	return func(prev_snake_body []Coord, prev_snake_head Coord) func() {
+		return func() {
+			g.snakes[snake].Body = prev_snake_body
+			g.snakes[snake].Head = prev_snake_head
+		}
+	}(prev_snake_body, prev_snake_head)
 }

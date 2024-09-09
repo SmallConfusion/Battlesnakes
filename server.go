@@ -8,6 +8,7 @@ import (
 
 const (
 	port     = "8000"
+	path     = "snake"
 	serverId = "smallconfusion/github/snake"
 )
 
@@ -76,10 +77,10 @@ func withServerId(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func RunServer() {
-	http.HandleFunc("/", withServerId(handleIndex))
-	http.HandleFunc("/start", withServerId(handleStart))
-	http.HandleFunc("/move", withServerId(HandleMove))
-	http.HandleFunc("/end", withServerId(HandleEnd))
+	http.HandleFunc("/"+path+"/", withServerId(handleIndex))
+	http.HandleFunc("/"+path+"/start", withServerId(handleStart))
+	http.HandleFunc("/"+path+"/move", withServerId(HandleMove))
+	http.HandleFunc("/"+path+"/end", withServerId(HandleEnd))
 
 	log.Println("Starting server")
 	log.Fatal(http.ListenAndServe(":"+port, nil))
