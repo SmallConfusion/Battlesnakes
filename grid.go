@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"sync"
+	"time"
 
 	"github.com/tiendc/go-deepcopy"
 )
@@ -26,7 +26,7 @@ const (
 	Player
 )
 
-const totalDepth = 5
+const moveTime = 300 * time.Millisecond
 
 func (g *Grid) SetupFromState(state GameState) {
 	g.sizeX = state.Board.Width
@@ -180,8 +180,26 @@ func (g Grid) foodMinDist(pos *Coord) float64 {
 }
 
 func (g *Grid) GetMove() Direction {
-	eval, dir := g.eval(totalDepth)
-	log.Println("Eval:", eval)
+	start := time.Now()
+
+	var dir Direction
+	var eval float64
+
+	for depth := 1; depth < 5; depth++ {
+		thisEval, thisDir := g.eval(depth)
+
+		if eval != thisEval {
+			dir = thisDir
+			eval = thisEval
+		}
+
+		log.Println("Depth", depth, "Move", dir, "Eval", eval)
+
+		if time.Since(start) > moveTime {
+			break
+		}
+	}
+
 	return dir
 }
 
@@ -243,6 +261,7 @@ func (g *Grid) moveSnake(snakeIndex int, dir Direction) {
 	if g.isFoodAt(&snake.Head) {
 		snake.Health = 100
 		snake.Body = append(snake.Body, snake.Body[len(snake.Body)-1])
+		snake.Length++
 	}
 }
 
@@ -252,65 +271,58 @@ func (g Grid) eval(depth int) (float64, Direction) {
 	if eval < -1000 {
 		return -10000, Left
 	}
+
 	if depth == 0 {
 		return eval, Left
 	} else {
 		max := math.Inf(-1)
 		maxDir := Left
 
-		var wg sync.WaitGroup
-
 		for _, dir := range directions {
-			wg.Add(1)
+			min := math.Inf(1)
 
-			go func() {
-				min := math.Inf(1)
+			totalMoves := int(math.Pow(4, float64(len(g.snakes)-1)))
 
-				totalMoves := int(math.Pow(4, float64(len(g.snakes)-1)))
+			for i := 0; i < totalMoves; i++ {
+				moves := make([]Direction, len(g.snakes))
 
-				for i := 0; i < totalMoves; i++ {
-					var newGrid Grid
-					deepcopy.Copy(&newGrid, &g)
-
-					moves := make([]Direction, len(g.snakes))
-
-					for j := 0; j < len(g.snakes); j++ {
-						if j == g.you {
-							moves[j] = dir
-							continue
-						}
-
-						index := j
-
-						if j > g.you {
-							j -= 1
-						}
-
-						base := math.Pow(4, float64(j))
-						next := math.Pow(4, float64(j)+1)
-						dirIndex := int(math.Mod(float64(i), next) / base)
-
-						moves[index] = directions[dirIndex]
+				for j := 0; j < len(g.snakes); j++ {
+					if j == g.you {
+						moves[j] = dir
+						continue
 					}
 
-					newGrid.simulate(moves)
-					eval, _ = newGrid.eval(depth - 1)
+					index := j
 
-					if eval < min {
-						min = eval
+					if j > g.you {
+						j -= 1
 					}
+
+					base := math.Pow(4, float64(j))
+					next := math.Pow(4, float64(j+1))
+					dirIndex := int(math.Mod(float64(i), next) / base)
+
+					moves[index] = directions[dirIndex]
+
 				}
 
-				if min >= max {
-					maxDir = dir
-					max = min
-				}
+				var newGrid Grid
+				deepcopy.Copy(&newGrid, &g)
 
-				wg.Done()
-			}()
+				newGrid.simulate(moves)
+				eval, _ = newGrid.eval(depth - 1)
+
+				if eval < min {
+					min = eval
+				}
+			}
+
+			if min >= max {
+				maxDir = dir
+				max = min
+			}
+
 		}
-
-		wg.Wait()
 
 		return max, maxDir
 	}
@@ -332,5 +344,5 @@ func (g Grid) evalBase() float64 {
 		}
 	}
 
-	return float64(g.snakes[g.you].Health) + float64(deadCount)*1000 + float64(g.snakes[g.you].Length) - float64(otherLength)
+	return float64(deadCount)*1000 + float64(g.snakes[g.you].Length) - float64(otherLength)*0.1
 }
