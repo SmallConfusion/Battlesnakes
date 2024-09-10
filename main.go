@@ -17,7 +17,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	move := grid.Move()
 
-	log.Println("\tGot move", move.String(), "in time", time.Since(start))
+	log.Println("Got move", move.String(), "in time", time.Since(start))
 
 	return BattlesnakeMoveResponse{Move: move.String()}
 }

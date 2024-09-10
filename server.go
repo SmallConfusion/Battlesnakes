@@ -66,11 +66,13 @@ func withServerId(c *gin.Context) {
 }
 
 func RunServer() {
+	gin.SetMode("release")
 	s := gin.Default()
-	basePath := "/" + path
+	s.SetTrustedProxies(nil)
 
 	sh := s.Use(withServerId)
 
+	basePath := "/" + path
 	sh.GET(basePath+"/", handleIndex)
 	sh.POST(basePath+"/start", handleStart)
 	sh.POST(basePath+"/end", handleEnd)
