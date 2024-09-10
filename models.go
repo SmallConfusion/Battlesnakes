@@ -23,6 +23,7 @@ type Battlesnake struct {
 	Latency        string         `json:"latency"`
 	Shout          string         `json:"shout"`
 	Customizations Customizations `json:"customizations"`
+	Dead           bool
 }
 
 type Customizations struct {
