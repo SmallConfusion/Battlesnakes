@@ -12,6 +12,8 @@ const (
 )
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
+	log.Println("Got index")
+
 	response := BattlesnakeInfoResponse{
 		APIVersion: "1",
 		Author:     "SmallConfusion",
@@ -76,10 +78,10 @@ func withServerId(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func RunServer() {
-	http.HandleFunc("/", withServerId(handleIndex))
-	http.HandleFunc("/start", withServerId(handleStart))
-	http.HandleFunc("/move", withServerId(HandleMove))
-	http.HandleFunc("/end", withServerId(HandleEnd))
+	http.HandleFunc("/snake/", withServerId(handleIndex))
+	http.HandleFunc("/snake/start", withServerId(handleStart))
+	http.HandleFunc("/snake/move", withServerId(HandleMove))
+	http.HandleFunc("/snake/end", withServerId(HandleEnd))
 
 	log.Println("Starting server")
 	log.Fatal(http.ListenAndServe(":"+port, nil))
