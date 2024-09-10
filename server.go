@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"io"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,6 +32,7 @@ func handleStart(c *gin.Context) {
 
 	if err != nil {
 		log.Println("Error starting game", err)
+		log.Println(io.ReadAll(c.Request.Body))
 	}
 
 	start(state)
@@ -42,6 +44,7 @@ func handleEnd(c *gin.Context) {
 
 	if err != nil {
 		log.Println("Error ending game", err)
+		log.Println(io.ReadAll(c.Request.Body))
 	}
 
 	end(state)
@@ -53,6 +56,7 @@ func handleMove(c *gin.Context) {
 
 	if err != nil {
 		log.Println("Error handling move", err)
+		log.Println(io.ReadAll(c.Request.Body))
 		return
 	}
 
@@ -79,5 +83,5 @@ func RunServer() {
 	sh.POST(basePath+"/move", handleMove)
 
 	log.Println("Starting server")
-	s.Run("0.0.0.0:" + port)
+	s.Run(":" + port)
 }
