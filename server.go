@@ -1,20 +1,20 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 const (
 	port     = "8000"
+	path     = "snake"
 	serverId = "smallconfusion/github/snake"
 )
 
-func handleIndex(w http.ResponseWriter, r *http.Request) {
-	log.Println("Got index")
-
-	response := BattlesnakeInfoResponse{
+func handleIndex(c *gin.Context) {
+	r := BattlesnakeInfoResponse{
 		APIVersion: "1",
 		Author:     "SmallConfusion",
 		Color:      "#ff92f7",
@@ -22,67 +22,60 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		Tail:       "round-bum",
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(response)
-
-	if err != nil {
-		log.Println("Error with json encoder, message: ", err)
-	}
+	c.JSON(http.StatusOK, r)
 }
 
-func handleStart(w http.ResponseWriter, r *http.Request) {
+func handleStart(c *gin.Context) {
 	state := GameState{}
-	err := json.NewDecoder(r.Body).Decode(&state)
+	err := c.BindJSON(&state)
 
 	if err != nil {
-		log.Println("Error with json decoder, message: ", err)
+		log.Println("Error starting game", err)
 	}
 
 	start(state)
 }
 
-func HandleEnd(w http.ResponseWriter, r *http.Request) {
+func handleEnd(c *gin.Context) {
 	state := GameState{}
-	err := json.NewDecoder(r.Body).Decode(&state)
+	err := c.BindJSON(&state)
 
 	if err != nil {
-		log.Println("Error with json decoder, message: ", err)
+		log.Println("Error ending game", err)
 	}
 
 	end(state)
 }
 
-func HandleMove(w http.ResponseWriter, r *http.Request) {
+func handleMove(c *gin.Context) {
 	state := GameState{}
-	err := json.NewDecoder(r.Body).Decode(&state)
+	err := c.BindJSON(&state)
 
 	if err != nil {
-		log.Println("Error with json decoder, message: ", err)
+		log.Println("Error handling move", err)
+		return
 	}
 
-	response := move(state)
+	r := move(state)
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(response)
-
-	if err != nil {
-		log.Println("Error with json encoder, message: ", err)
-	}
+	c.JSON(http.StatusOK, r)
 }
 
-func withServerId(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Server", serverId)
-		next(w, r)
-	}
+func withServerId(c *gin.Context) {
+	c.Set("Server", serverId)
 }
 
 func RunServer() {
-	http.HandleFunc("/snake/", withServerId(handleIndex))
-	http.HandleFunc("/snake/start", withServerId(handleStart))
-	http.HandleFunc("/snake/move", withServerId(HandleMove))
-	http.HandleFunc("/snake/end", withServerId(HandleEnd))
+	s := gin.Default()
+	basePath := "/" + path
+
+	sh := s.Use(withServerId)
+
+	sh.GET(basePath+"/", handleIndex)
+	sh.POST(basePath+"/start", handleStart)
+	sh.POST(basePath+"/end", handleEnd)
+	sh.POST(basePath+"/move", handleMove)
 
 	log.Println("Starting server")
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	s.Run("0.0.0.0:" + port)
 }
