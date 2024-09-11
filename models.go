@@ -7,7 +7,7 @@ type BattlesnakeInfoResponse struct {
 	Head       string `json:"head"`
 	Tail       string `json:"tail"`
 }
-ain
+
 type BattlesnakeMoveResponse struct {
 	Move  string `json:"move"`
 	Shout string `json:"shout"`
