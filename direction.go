@@ -1,4 +1,4 @@
-package main
+package battlesnake
 
 type Direction int
 

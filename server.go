@@ -1,9 +1,9 @@
-package main
+package battlesnake
 
 import (
+	"io"
 	"log"
 	"net/http"
-	"io"
 
 	"github.com/gin-gonic/gin"
 )
@@ -69,11 +69,7 @@ func withServerId(c *gin.Context) {
 	c.Set("Server", serverId)
 }
 
-func RunServer() {
-	gin.SetMode("release")
-	s := gin.Default()
-	s.SetTrustedProxies(nil)
-
+func RunServer(s *gin.Engine) {
 	sh := s.Use(withServerId)
 
 	basePath := "/" + path
@@ -81,7 +77,4 @@ func RunServer() {
 	sh.POST(basePath+"/start", handleStart)
 	sh.POST(basePath+"/end", handleEnd)
 	sh.POST(basePath+"/move", handleMove)
-
-	log.Println("Starting server")
-	s.Run(":" + port)
 }

@@ -1,13 +1,9 @@
-package main
+package battlesnake
 
 import (
 	"log"
 	"time"
 )
-
-func main() {
-	RunServer()
-}
 
 func move(state GameState) BattlesnakeMoveResponse {
 	start := time.Now()
