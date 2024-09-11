@@ -1,4 +1,4 @@
-package battlesnake
+package hatsunesnaku
 
 import (
 	"log"

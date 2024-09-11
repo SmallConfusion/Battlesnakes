@@ -1,4 +1,4 @@
-package battlesnake
+package hatsunesnaku
 
 type Direction int
 

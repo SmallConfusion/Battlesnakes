@@ -1,4 +1,4 @@
-package battlesnake
+package hatsunesnaku
 
 type BattlesnakeInfoResponse struct {
 	APIVersion string `json:"apiversion"`
